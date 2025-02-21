@@ -1,13 +1,14 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import axios from "axios"
-import { Link } from 'react-router-dom';
+import axios from "axios";
+import { Link, useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SignUp = () => {
-
- // const URL
- const URL="http://localhost:8000"
+  const navigate = useNavigate();
+  const URL = "http://localhost:8000";
 
   const initialValues = {
     fullName: '',
@@ -27,29 +28,22 @@ const SignUp = () => {
       .required('Confirm Password is required'),
   });
 
-  const onSubmit = (values) => {
-   // Last key find karein
-    let lastKey = Object.keys(values).pop();
-    // Last key delete karein
-    delete values[lastKey];
-
-    console.log('Form data', values);
-
-    // You can handle form submission here, like sending data to an API
-    addUser(values)
-  };
-
-  const addUser=async(values)=>{
-
+  const onSubmit = async (values, { setSubmitting }) => {
     try {
-        const res= await axios.post(`${URL}/signUpUser`,values)
-        console.log("response => ",res.data)
+      const { confirmPassword, ...userData } = values; // Remove confirmPassword
 
+      const res = await axios.post(`${URL}/signUpUser`, userData);
+      console.log('response => ', res.data);
+      toast.success("SignUp successful!");
+      
+      navigate('/login');
     } catch (error) {
-        console.log("ERROR => ",error.response.data.msg)
+      console.error("ERROR => ", error);
+      toast.error(error.response?.data?.msg || "Something went wrong!");
+    } finally {
+      setSubmitting(false);
     }
-  }
-
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -72,11 +66,7 @@ const SignUp = () => {
                   name="fullName"
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
-                <ErrorMessage
-                  name="fullName"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                <ErrorMessage name="fullName" component="div" className="text-red-500 text-sm mt-1" />
               </div>
 
               <div className="mb-4">
@@ -89,11 +79,7 @@ const SignUp = () => {
                   name="email"
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
               </div>
 
               <div className="mb-4">
@@ -106,11 +92,7 @@ const SignUp = () => {
                   name="password"
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
               </div>
 
               <div className="mb-4">
@@ -123,15 +105,14 @@ const SignUp = () => {
                   name="confirmPassword"
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
-                <ErrorMessage
-                  name="confirmPassword"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
               </div>
 
               <div className="mb-3">
-                <span>Have an account already?<Link to={"/login"} className="underline text-blue-600">Login in here! </Link></span>
+                <span>
+                  Have an account already?{' '}
+                  <Link to="/login" className="underline text-blue-600">Login here!</Link>
+                </span>
               </div>
 
               <button
@@ -139,12 +120,13 @@ const SignUp = () => {
                 disabled={isSubmitting}
                 className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Sign Up
+                {isSubmitting ? "Signing Up..." : "Sign Up"}
               </button>
             </Form>
           )}
         </Formik>
       </div>
+      <ToastContainer />
     </div>
   );
 };
